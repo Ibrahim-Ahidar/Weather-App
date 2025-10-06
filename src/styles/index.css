@@ -1,0 +1,37 @@
+@font-face {
+  font-family: 'myFont';
+  src: url('/fonts/Zalando_Sans_SemiExpanded/ZalandoSansSemiExpanded-VariableFont_wght.ttf') format('truetype-variations');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'myFont';
+  src: url('/fonts/Zalando_Sans_SemiExpanded/ZalandoSansSemiExpanded-Italic-VariableFont_wght.ttf') format('truetype-variations');
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  font-family: 'myFont', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+  background-color: #f5f5f5;
+}
+
+#root {
+  min-height: 100vh;
+}
