@@ -91,7 +91,7 @@ export function WeatherProvider({ children }) {
       dispatch({
         type: SET_WEATHER,
         payload: {
-          cityName: cityObj.name,
+          cityName: w.cityName || cityObj.name,
           lat: cityObj.lat,
           lon: cityObj.lon,
           ...w,

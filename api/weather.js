@@ -17,6 +17,7 @@ export default async function handler(req, res) {
     const data = await r.json();
 
     const payload = {
+      cityName: data.name || "",
       temperature: Math.round(data.main.temp),
       description: data.weather?.[0]?.description ?? "",
       minTemp: Math.round(data.main.temp_min),
@@ -31,4 +32,3 @@ export default async function handler(req, res) {
     res.status(500).json({ error: "Failed to fetch weather data" });
   }
 }
-
