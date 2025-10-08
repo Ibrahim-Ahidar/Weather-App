@@ -119,20 +119,32 @@ export function WeatherProvider({ children }) {
     return () => clearInterval(timer);
   }, [i18n.language]);
 
-  // Geolocate on first load; fallback to default city
+  // Geolocate on first load; fetch actual city name; fallback to default
   useEffect(() => {
     let attempted = false;
     if (typeof window !== "undefined" && "geolocation" in navigator) {
       attempted = true;
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          const city = {
-            name: "Current Location",
-            lat: pos.coords.latitude,
-            lon: pos.coords.longitude,
-          };
-          dispatch({ type: SET_SELECTED, payload: city });
-          fetchWeather(city);
+          const { latitude, longitude } = pos.coords;
+          // Fetch actual city name via serverless reverse geocoding
+          fetch(`/api/reverse-geocode?lat=${latitude}&lon=${longitude}`)
+            .then((r) => (r.ok ? r.json() : Promise.reject()))
+            .then((payload) => {
+              const cityFromApi = payload?.city;
+              const city = cityFromApi || {
+                name: "My Location",
+                lat: latitude,
+                lon: longitude,
+              };
+              dispatch({ type: SET_SELECTED, payload: city });
+              fetchWeather(city);
+            })
+            .catch(() => {
+              const city = { name: "My Location", lat: latitude, lon: longitude };
+              dispatch({ type: SET_SELECTED, payload: city });
+              fetchWeather(city);
+            });
         },
         () => {
           // Permission denied or error: use default
@@ -174,4 +186,3 @@ export function WeatherProvider({ children }) {
 }
 
 export const useWeatherContext = () => useContext(WeatherContext);
-
