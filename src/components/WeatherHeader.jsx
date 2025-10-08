@@ -16,7 +16,7 @@ function WeatherHeaderBase() {
           textAlign: isRTL ? "right" : "left",
         }}
       >
-        {weather ? weather.cityName : selected.name}
+        {weather?.cityName || selected?.name || ""}
       </h1>
 
       <div

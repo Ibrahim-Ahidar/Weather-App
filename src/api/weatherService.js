@@ -1,7 +1,8 @@
 // src/api/weatherService.js
 import axios from "axios";
 
-export const DEFAULT_CITY = { name: "Madrid", lat: 40.4168, lon: -3.7038 };
+// No default city; app uses geolocation or user search
+export const DEFAULT_CITY = null;
 
 export async function searchCities(query) {
   if (!query || query.length < 2) return [];
