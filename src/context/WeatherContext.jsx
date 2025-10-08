@@ -42,7 +42,6 @@ export function WeatherProvider({ children }) {
 
   const [state, dispatch] = useReducer(weatherReducer, initialState);
 
-  // مشتقات (مُذكّرة بـ useMemo)
   const isRTL = useMemo(() => i18n.language === "ar", [i18n.language]);
 
   const langForAPI = useMemo(() => {
@@ -57,7 +56,6 @@ export function WeatherProvider({ children }) {
       .format("dddd HH:mm");
   }, [state.now, i18n.language]);
 
-  // أفعال
   const setInput = (v) => {
     dispatch({ type: SET_INPUT, payload: v });
   };
@@ -110,7 +108,7 @@ export function WeatherProvider({ children }) {
     i18n.changeLanguage(code);
   };
 
-  // مؤقت للوقت الحالي
+  // Keep local time ticking every minute
   useEffect(() => {
     moment.locale(
       i18n.language === "ar" ? "ar" : i18n.language === "es" ? "es" : "en"
@@ -121,19 +119,41 @@ export function WeatherProvider({ children }) {
     return () => clearInterval(timer);
   }, [i18n.language]);
 
-  // جلب أولي
+  // Geolocate on first load; fallback to default city
   useEffect(() => {
-    fetchWeather(state.selected);
+    let attempted = false;
+    if (typeof window !== "undefined" && "geolocation" in navigator) {
+      attempted = true;
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const city = {
+            name: "Current Location",
+            lat: pos.coords.latitude,
+            lon: pos.coords.longitude,
+          };
+          dispatch({ type: SET_SELECTED, payload: city });
+          fetchWeather(city);
+        },
+        () => {
+          // Permission denied or error: use default
+          fetchWeather(state.selected);
+        },
+        { enableHighAccuracy: true, timeout: 8000, maximumAge: 300000 }
+      );
+    }
+    if (!attempted) {
+      // Geolocation not available
+      fetchWeather(state.selected);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // إعادة الجلب عند تغيير اللغة
+  // Re-fetch with same coords when language changes (for localized description)
   useEffect(() => {
     if (state.selected) fetchWeather(state.selected);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [langForAPI]);
 
-  // قيمة السياق — مُذكّرة لتقليل الـ re-renders
   const value = useMemo(
     () => ({
       ...state,
@@ -154,3 +174,4 @@ export function WeatherProvider({ children }) {
 }
 
 export const useWeatherContext = () => useContext(WeatherContext);
+
