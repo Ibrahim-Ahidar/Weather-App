@@ -88,15 +88,40 @@ export function WeatherProvider({ children }) {
         lon: cityObj.lon,
         lang: langForAPI,
       });
+      const initialCityName = w.cityName || cityObj.name;
       dispatch({
         type: SET_WEATHER,
         payload: {
-          cityName: w.cityName || cityObj.name,
+          cityName: initialCityName,
           lat: cityObj.lat,
           lon: cityObj.lon,
           ...w,
         },
       });
+
+      // If upstream didn't include a city name, try reverse-geocoding as a second pass
+      if (!w.cityName) {
+        try {
+          const res = await fetch(
+            `/api/reverse-geocode?lat=${cityObj.lat}&lon=${cityObj.lon}&limit=1`
+          );
+          if (res.ok) {
+            const payload = await res.json();
+            const rg = payload?.city;
+            if (rg?.name) {
+              dispatch({
+                type: SET_WEATHER,
+                payload: {
+                  cityName: rg.name,
+                  lat: cityObj.lat,
+                  lon: cityObj.lon,
+                  ...w,
+                },
+              });
+            }
+          }
+        } catch {}
+      }
     } catch (e) {
       dispatch({ type: SET_ERROR, payload: "Failed to fetch weather data" });
     } finally {
@@ -141,7 +166,11 @@ export function WeatherProvider({ children }) {
               fetchWeather(city);
             })
             .catch(() => {
-              const city = { name: "My Location", lat: latitude, lon: longitude };
+              const city = {
+                name: "My Location",
+                lat: latitude,
+                lon: longitude,
+              };
               dispatch({ type: SET_SELECTED, payload: city });
               fetchWeather(city);
             });
